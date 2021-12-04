@@ -1,14 +1,18 @@
 import requests
 from bs4 import BeautifulSoup
+from pymongo import MongoClient
 
-# test!!!
-def print_song(date, rate):
-    """특정 날짜의 특정 순위 곡을 출력한다
+client = MongoClient('localhost', 27017)
+db = client.dbsparta
+
+
+def get_song_title(date, rate):
+    """특정 날짜의 특정 순위 곡 제목을 리턴한다
 
     :param date: 날짜('01'~'31')
     :param rate: 순위(1~50)
     :return:
-        프린트해줌
+        곡 제목(string)
     """
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
@@ -22,11 +26,13 @@ def print_song(date, rate):
     first_song = songs[rate - 1]  # songs 타입이 리스트 형식이기 때문에 첫 번째 곡만 가져온다
     a_tag = first_song.select_one('td.info > a.title.ellipsis')
     if a_tag is not None:
-        print(a_tag.text.strip())
+        song_title = a_tag.text.strip()
+        print(song_title)
+        return song_title
 
 
-rate = 49
-date_list = ['01', '02', '03', '04', '05']
-for date in date_list:
-    print(f'{date}일의 {rate}위곡은?')
-    print_song(date, rate)
+for date in ['01', '02', '03', '04', '05']:
+    song_title = get_song_title(date, 1)
+    document = {'date': date, 'song_title': song_title}
+    db.nov_no1song.insert_one(document)
+
